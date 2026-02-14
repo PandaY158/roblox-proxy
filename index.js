@@ -2,20 +2,25 @@ const express = require("express");
 const axios = require("axios");
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
 app.get("/gamepasses/:universeId", async (req, res) => {
-    try {
-        const universeId = req.params.universeId;
+    const universeId = req.params.universeId;
 
+    try {
         const response = await axios.get(
-            `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`
+            `https://apis.roblox.com/game-passes/v1/universes/${universeId}/game-passes`,
+            {
+                params: {
+                    passView: "Full",
+                    pageSize: 100
+                }
+            }
         );
 
         res.json({
             success: true,
-            count: response.data.data.length,
-            data: response.data.data
+            data: response.data.gamePasses
         });
 
     } catch (error) {
@@ -27,5 +32,5 @@ app.get("/gamepasses/:universeId", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log("Server running on port " + PORT);
+    console.log(`Proxy running on port ${PORT}`);
 });
