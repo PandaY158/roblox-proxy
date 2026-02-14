@@ -8,14 +8,15 @@ app.get("/gamepasses/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
 
-        const universesResponse = await axios.get(
-            `https://develop.roblox.com/v1/users/${userId}/universes`
+        // Obtener juegos del usuario
+        const gamesResponse = await axios.get(
+            `https://games.roblox.com/v2/users/${userId}/games?accessFilter=Public&limit=50&sortOrder=Asc`
         );
 
         let allPasses = [];
 
-        for (const universe of universesResponse.data.data) {
-            const universeId = universe.id;
+        for (const game of gamesResponse.data.data) {
+            const universeId = game.id;
 
             const passesResponse = await axios.get(
                 `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`
@@ -33,7 +34,7 @@ app.get("/gamepasses/:userId", async (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            error: error.message
+            error: error.response?.data || error.message
         });
     }
 });
