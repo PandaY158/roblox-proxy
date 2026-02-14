@@ -15,27 +15,17 @@ app.get("/gamepasses/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
 
-        // Obtener juegos del usuario
-        const gamesResponse = await axiosInstance.get(
-            `https://games.roblox.com/v2/users/${userId}/games?accessFilter=Public&limit=50&sortOrder=Asc`
+        const response = await axiosInstance.get(
+            `https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?limit=100`
         );
 
-        let allPasses = [];
-
-        for (const game of gamesResponse.data.data) {
-            const universeId = game.id;
-
-            const passesResponse = await axiosInstance.get(
-                `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`
-            );
-
-            allPasses.push(...passesResponse.data.data);
-        }
+        // Filtrar solo GamePass (AssetTypeId 34)
+        const gamepasses = response.data.data.filter(asset => asset.assetTypeId === 34);
 
         res.json({
             success: true,
-            count: allPasses.length,
-            data: allPasses
+            count: gamepasses.length,
+            data: gamepasses
         });
 
     } catch (error) {
