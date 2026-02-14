@@ -11,21 +11,31 @@ const axiosInstance = axios.create({
     }
 });
 
-app.get("/gamepasses/:userId", async (req, res) => {
+app.get("/gamepasses/:placeId", async (req, res) => {
     try {
-        const userId = req.params.userId;
+        const placeId = req.params.placeId;
 
-        const response = await axiosInstance.get(
-            `https://inventory.roblox.com/v1/users/${userId}/assets/collectibles?limit=100`
+        // 1️⃣ Convertir PlaceId → UniverseId
+        const placeResponse = await axiosInstance.get(
+            `https://games.roblox.com/v1/games/multiget-place-details?placeIds=${placeId}`
         );
 
-        // Filtrar solo GamePass (AssetTypeId 34)
-        const gamepasses = response.data.data.filter(asset => asset.assetTypeId === 34);
+        const universeId = placeResponse.data[0].universeId;
+
+        if (!universeId) {
+            return res.json({ success: false, error: "Invalid PlaceId" });
+        }
+
+        // 2️⃣ Obtener gamepasses del universe
+        const passesResponse = await axiosInstance.get(
+            `https://games.roblox.com/v1/games/${universeId}/game-passes?limit=100&sortOrder=Asc`
+        );
 
         res.json({
             success: true,
-            count: gamepasses.length,
-            data: gamepasses
+            universeId: universeId,
+            count: passesResponse.data.data.length,
+            data: passesResponse.data.data
         });
 
     } catch (error) {
